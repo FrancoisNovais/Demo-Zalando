@@ -19,7 +19,9 @@ const selectedVariant = ref(data.variants[0])
       <Header />
       <main>
         <div class="container">
-          <div></div>
+          <div>
+            <img :src="selectedVariant.image.url" :alt="selectedVariant.image.alt" />
+          </div>
 
           <Details :productInfos="productInfos" :selectedVariant="selectedVariant" />
         </div>
@@ -36,14 +38,22 @@ const selectedVariant = ref(data.variants[0])
   height: calc(
     100vh - var(--header-top-height) - var(--header-bottom-height) - var(--footer-height)
   );
-  border: 1px solid green;
+  /* border: 1px solid green; */
 }
 .container > div {
-  border: 1px solid orange;
+  /* border: 1px solid orange; */
   width: 50%;
 }
 .container > div:last-child {
   padding: 25px 0 25px 100px;
   box-sizing: border-box;
+}
+.container > div:first-child {
+  padding: 25px;
+}
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

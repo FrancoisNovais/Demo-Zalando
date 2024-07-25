@@ -9,6 +9,14 @@ const props = defineProps({
     required: true
   }
 })
+const isVariandSoldOut = (sizes) => {
+  for (const key in sizes) {
+    if (sizes[key] > 0) {
+      return false
+    }
+  }
+  return true
+}
 </script>
 <template>
   <div>
@@ -27,9 +35,29 @@ const props = defineProps({
       <p>
         Couleur : <span class="selectedColor">{{ selectedVariant.color }}</span>
       </p>
+      <div class="img-bloc">
+        <img
+          v-for="variant in productInfos.variants"
+          :src="variant.image.url"
+          :alt="variant.image.alt"
+          :class="{
+            selectedImg: variant.id === selectedVariant.id,
+            outOfStock: isVariandSoldOut(variant.sizes)
+          }"
+        />
+      </div>
       <p class="advise">
         Nous vous recommandons de choisir une taille au-dessus de celle habituelle.
       </p>
+      <div class="sizes-bloc">
+        <div
+          v-for="(quantity, size) in selectedVariant.sizes"
+          :key="size"
+          :class="{ outOfStock: quantity === 0 }"
+        >
+          {{ size }}
+        </div>
+      </div>
       <div class="cart-bloc">
         <button>Ajouter au panier</button>
         <div>
@@ -62,6 +90,20 @@ h1 + p span {
 .selectedColor {
   font-weight: bold;
 }
+/* -- Image bloc ------------ */
+.img-bloc {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+img {
+  width: 60px;
+  height: 70px;
+  object-fit: cover;
+}
+.selectedImg {
+  border: 2px solid black;
+}
 /* -- Advise ------------ */
 .advise {
   background-color: var(--light-grey);
@@ -70,6 +112,24 @@ h1 + p span {
   font-weight: lighter;
   margin-bottom: 10px;
   line-height: 20px;
+}
+/* -- Sizes bloc ------------ */
+.sizes-bloc {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sizes-bloc div {
+  border: 1px solid black;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 2px;
+}
+.outOfStock {
+  opacity: 0.3;
 }
 /* -- Cart bloc ------------ */
 .cart-bloc {
