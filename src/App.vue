@@ -4,8 +4,13 @@ import Footer from './components/Footer.vue'
 import Details from './components/Details.vue'
 
 // Import du fichier JSON contenant les informations relatives au produit
-import productInfos from './assets/data.json'
-console.log(productInfos)
+import data from './assets/data.json'
+
+import { reactive, ref } from 'vue'
+
+const productInfos = reactive(data)
+
+const selectedVariant = ref(data.variants[0])
 </script>
 
 <template>
@@ -16,7 +21,7 @@ console.log(productInfos)
         <div class="container">
           <div></div>
 
-          <Details :productInfos="productInfos" />
+          <Details :productInfos="productInfos" :selectedVariant="selectedVariant" />
         </div>
       </main>
 

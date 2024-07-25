@@ -3,6 +3,10 @@ const props = defineProps({
   productInfos: {
     type: Object,
     required: true
+  },
+  selectedVariant: {
+    type: Object,
+    required: true
   }
 })
 </script>
@@ -20,6 +24,9 @@ const props = defineProps({
         <font-awesome-icon :icon="['fas', 'star-half-alt']" size="lg" />
         <span>{{ productInfos.rate }}</span>
       </div>
+      <p>
+        Couleur : <span class="selectedColor">{{ selectedVariant.color }}</span>
+      </p>
       <p class="advise">
         Nous vous recommandons de choisir une taille au-dessus de celle habituelle.
       </p>
@@ -51,6 +58,9 @@ h1 + p span {
 }
 .rate svg {
   margin-right: 3px;
+}
+.selectedColor {
+  font-weight: bold;
 }
 /* -- Advise ------------ */
 .advise {
