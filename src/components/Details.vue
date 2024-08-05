@@ -1,6 +1,6 @@
 <script setup>
 const props = defineProps({
-  productInfos: {
+  productInfo: {
     type: Object,
     required: true
   },
@@ -9,165 +9,173 @@ const props = defineProps({
     required: true
   }
 })
-const isVariandSoldOut = (sizes) => {
+
+const emit = defineEmits({
+  changeSelectedVariant: null,
+  addProductToCart: (product) => {
+    // Si le payload existe et que c'est un objet
+    if (product && typeof product === 'object') {
+      // L'événement est validé
+      return true
+    } else {
+      // Ajout d'un warning (en plus de celui automatiquement déclenché par Vue.js) pour fournir un complément d'information sur la raison pour laquelle l'événement n'est pas valide
+      console.warn('Payload is required and must be an object')
+      // L'événement n'est pas validé
+      return false
+    }
+  }
+})
+
+const isVariantSoldOut = (sizes) => {
+  //  La boucle 'for in' permet de boucler sur un objet et d'avoir accés aux noms des clés et aux valeurs de celui-ci
   for (const key in sizes) {
     if (sizes[key] > 0) {
       return false
     }
   }
+
   return true
 }
 
-const emit = defineEmits(['changeSelectedVariant', 'addProductToCart'])
-
 const handleEmitNewVariant = (variant) => {
-  const isSoldOut = isVariandSoldOut(variant.sizes)
+  // Réutilisation de la fonction 'isVariantSoldOut' pour savoir si la version du produit est en rupture de stock
+  const isSoldOut = isVariantSoldOut(variant.sizes)
+
+  // Si la version n'est pas en rupture de stock l'événement est émis, sinon rien
   if (!isSoldOut) {
     emit('changeSelectedVariant', variant)
   }
 }
 
 const handleSelectSize = (size, quantity) => {
+  // Copie de l'objet 'selectedVariant'
   const newObj = { ...props.selectedVariant }
+  // 👆 Pour rappel, voici la syntaxe pour accéder aux props dans la balise '<script>'
 
-  if (quantity > 0) {
+  if (quantity !== 0) {
+    // Ajout de la clé
     newObj.selectedSize = size
+
+    // Emission de l'événement
     emit('changeSelectedVariant', newObj)
   }
 }
 
 const handleAddToCart = () => {
   if (!props.selectedVariant.selectedSize) {
-    alert('Veuillez sélectionnez une taille !')
+    // Aucune taille n'est sélectionnée donc l'utilisateur est alerté
+    alert('Veuillez sélectionner une taille !')
   } else {
-    emit('addProductToCart')
+    // Une taille est sélectionnée donc l'événement est émit
+    emit('addProductToCart', props.selectedVariant)
   }
 }
 </script>
+
 <template>
   <div>
-    <div>
-      <h2>{{ productInfos.brand }}</h2>
-      <h1>{{ productInfos.name }}</h1>
-      <p>{{ productInfos.price }} € <span>TVA incluse</span></p>
-      <div class="rate">
-        <font-awesome-icon :icon="['fas', 'star']" size="lg" />
-        <font-awesome-icon :icon="['fas', 'star']" size="lg" />
-        <font-awesome-icon :icon="['fas', 'star']" size="lg" />
-        <font-awesome-icon :icon="['fas', 'star']" size="lg" />
-        <font-awesome-icon :icon="['fas', 'star-half-alt']" size="lg" />
-        <span>{{ productInfos.rate }}</span>
+    <h2>{{ productInfo.brand }}</h2>
+
+    <h1>{{ productInfo.name }}</h1>
+
+    <p>{{ productInfo.price }} € <span>TVA incluse</span></p>
+
+    <div class="rate">
+      <font-awesome-icon :icon="['fas', 'star']" size="lg" />
+      <font-awesome-icon :icon="['fas', 'star']" size="lg" />
+      <font-awesome-icon :icon="['fas', 'star']" size="lg" />
+      <font-awesome-icon :icon="['fas', 'star']" size="lg" />
+      <font-awesome-icon :icon="['fas', 'star-half-alt']" size="lg" />
+
+      <span>{{ productInfo.rate }}</span>
+    </div>
+
+    <p>
+      Couleur : <span>{{ selectedVariant.color }}</span>
+    </p>
+
+    <div class="img-bloc">
+      <img
+        v-for="variant in productInfo.variants"
+        :key="variant.id"
+        :src="variant.image.url"
+        :alt="variant.image.alt"
+        :class="{
+          selectedImg: selectedVariant.id === variant.id,
+          outOfStock: isVariantSoldOut(variant.sizes)
+        }"
+        @click="handleEmitNewVariant(variant)"
+      />
+    </div>
+
+    <p class="advise">
+      Nous vous recommandons de choisir une taille au-dessus de celle habituelle.
+    </p>
+
+    <div class="sizes-bloc">
+      <div
+        v-for="(quantity, size) in selectedVariant.sizes"
+        :key="size"
+        :class="{
+          outOfStock: quantity === 0,
+          selectedSize: size === selectedVariant.selectedSize
+        }"
+        @click="handleSelectSize(size, quantity)"
+      >
+        {{ size }}
       </div>
-      <p>
-        Couleur : <span class="selectedColor">{{ selectedVariant.color }}</span>
-      </p>
-      <div class="img-bloc">
-        <img
-          v-for="variant in productInfos.variants"
-          :key="variant.id"
-          :src="variant.image.url"
-          :alt="variant.image.alt"
-          :class="{
-            selectedImg: variant.id === selectedVariant.id,
-            outOfStock: isVariandSoldOut(variant.sizes)
-          }"
-          @click="handleEmitNewVariant(variant)"
-        />
-      </div>
-      <p class="advise">
-        Nous vous recommandons de choisir une taille au-dessus de celle habituelle.
-      </p>
-      <div class="sizes-bloc">
-        <div
-          v-for="(quantity, size) in selectedVariant.sizes"
-          :key="size"
-          :class="{
-            outOfStock: quantity === 0,
-            selectedSize: size === selectedVariant.selectedSize
-          }"
-          @click="handleSelectSize(size, quantity)"
-        >
-          {{ size }}
-        </div>
-      </div>
-      <div class="cart-bloc">
-        <button @click="handleAddToCart">Ajouter au panier</button>
-        <div>
-          <font-awesome-icon :icon="['far', 'heart']" />
-        </div>
+    </div>
+
+    <div class="cart-bloc">
+      <button @click="handleAddToCart">Ajouter au panier</button>
+
+      <div>
+        <font-awesome-icon :icon="['far', 'heart']" />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* La balise 'p' se trouvant immediatement après la balise 'h1' */
 h1 + p {
   font-size: 22px;
   margin-bottom: 25px;
-  font-weight: bold;
 }
 h1 + p span {
-  color: var(--dark-grey);
+  color: #66676e;
   font-size: 14px;
   font-weight: lighter;
 }
 
-/* -- Rate Bloc ------------ */
+/* -- rate ------- */
 .rate {
   margin-bottom: 40px;
 }
 .rate svg {
   margin-right: 3px;
 }
-.selectedColor {
-  font-weight: bold;
+
+/* -- selected color ------- */
+.rate + p {
+  font-weight: lighter;
 }
-/* -- Image bloc ------------ */
-.img-bloc {
-  display: flex;
-  gap: 10px;
-  margin: 10px 0;
+
+.rate + p span {
+  font-weight: bolder;
 }
-img {
-  width: 60px;
-  height: 70px;
-  object-fit: cover;
-}
-.selectedImg {
-  border: 2px solid black;
-}
-/* -- Advise ------------ */
+
+/* -- advise ------- */
 .advise {
-  background-color: var(--light-grey);
+  background-color: #efeff0;
   padding: 20px;
   font-size: 14px;
+  line-height: 20px;
   font-weight: lighter;
   margin-bottom: 10px;
-  line-height: 20px;
 }
-/* -- Sizes bloc ------------ */
-.sizes-bloc {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.sizes-bloc div {
-  border: 1px solid black;
-  height: 40px;
-  width: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 2px;
-  cursor: pointer;
-}
-.outOfStock {
-  opacity: 0.3;
-}
-.sizes-bloc .selectedSize {
-  border-width: 2px;
-}
-/* -- Cart bloc ------------ */
+
+/* -- cart-bloc ------- */
 .cart-bloc {
   display: flex;
   gap: 10px;
@@ -179,8 +187,8 @@ img {
   background-color: var(--main-black);
   color: white;
   flex: 1;
-  cursor: pointer;
   border: none;
+  cursor: pointer;
 }
 .cart-bloc button:hover {
   opacity: 0.7;
@@ -191,15 +199,59 @@ img {
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid var(--main-black);
+  border: 1px solid var(--main-black);
   color: var(--main-black);
 }
 .cart-bloc div:hover {
-  border-width: 3px;
+  border-width: 2px;
 }
 .cart-bloc svg {
   width: 25px;
   height: 25px;
   cursor: pointer;
+}
+
+/* -- img-bloc ------- */
+.img-bloc {
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+}
+img {
+  width: 60px;
+  height: 70px;
+  object-fit: cover;
+  cursor: pointer;
+}
+.selectedImg {
+  border: 2px solid black;
+}
+
+/* -- sizes -------------------- */
+.sizes-bloc {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sizes-bloc > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  width: 40px;
+  height: 40px;
+  padding-top: 2px;
+  cursor: pointer;
+}
+.sizes-bloc .selectedSize {
+  /* On écrase la propriété définie initialement */
+  border-width: 2px;
+}
+
+:is(.sizes-bloc, .img-bloc) .outOfStock {
+  /* Syntaxe équivalente à 👇 */
+  /*  .sizes-bloc .outOfStock, .img-bloc .outOfStock{ */
+  opacity: 0.3;
+  cursor: auto;
 }
 </style>

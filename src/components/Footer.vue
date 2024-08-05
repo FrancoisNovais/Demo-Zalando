@@ -15,5 +15,6 @@ footer {
 a {
   font-weight: bold;
   color: var(--main-orange);
+  text-decoration: none;
 }
 </style>
