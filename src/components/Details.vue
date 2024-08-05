@@ -17,6 +17,32 @@ const isVariandSoldOut = (sizes) => {
   }
   return true
 }
+
+const emit = defineEmits(['changeSelectedVariant', 'addProductToCart'])
+
+const handleEmitNewVariant = (variant) => {
+  const isSoldOut = isVariandSoldOut(variant.sizes)
+  if (!isSoldOut) {
+    emit('changeSelectedVariant', variant)
+  }
+}
+
+const handleSelectSize = (size, quantity) => {
+  const newObj = { ...props.selectedVariant }
+
+  if (quantity > 0) {
+    newObj.selectedSize = size
+    emit('changeSelectedVariant', newObj)
+  }
+}
+
+const handleAddToCart = () => {
+  if (!props.selectedVariant.selectedSize) {
+    alert('Veuillez sélectionnez une taille !')
+  } else {
+    emit('addProductToCart')
+  }
+}
 </script>
 <template>
   <div>
@@ -38,12 +64,14 @@ const isVariandSoldOut = (sizes) => {
       <div class="img-bloc">
         <img
           v-for="variant in productInfos.variants"
+          :key="variant.id"
           :src="variant.image.url"
           :alt="variant.image.alt"
           :class="{
             selectedImg: variant.id === selectedVariant.id,
             outOfStock: isVariandSoldOut(variant.sizes)
           }"
+          @click="handleEmitNewVariant(variant)"
         />
       </div>
       <p class="advise">
@@ -53,13 +81,17 @@ const isVariandSoldOut = (sizes) => {
         <div
           v-for="(quantity, size) in selectedVariant.sizes"
           :key="size"
-          :class="{ outOfStock: quantity === 0 }"
+          :class="{
+            outOfStock: quantity === 0,
+            selectedSize: size === selectedVariant.selectedSize
+          }"
+          @click="handleSelectSize(size, quantity)"
         >
           {{ size }}
         </div>
       </div>
       <div class="cart-bloc">
-        <button>Ajouter au panier</button>
+        <button @click="handleAddToCart">Ajouter au panier</button>
         <div>
           <font-awesome-icon :icon="['far', 'heart']" />
         </div>
@@ -127,9 +159,13 @@ img {
   justify-content: center;
   align-items: center;
   padding-top: 2px;
+  cursor: pointer;
 }
 .outOfStock {
   opacity: 0.3;
+}
+.sizes-bloc .selectedSize {
+  border-width: 2px;
 }
 /* -- Cart bloc ------------ */
 .cart-bloc {

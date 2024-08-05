@@ -11,19 +11,35 @@ import { reactive, ref } from 'vue'
 const productInfos = reactive(data)
 
 const selectedVariant = ref(data.variants[0])
+
+const cart = reactive([])
+
+const changeVariant = (variant) => {
+  selectedVariant.value = variant
+}
+
+const addToCart = () => {
+  cart.push(selectedVariant)
+  console.log(selectedVariant)
+}
 </script>
 
 <template>
   <div>
     <div class="wrapper">
-      <Header />
+      <Header :cart="cart" />
       <main>
         <div class="container">
           <div>
             <img :src="selectedVariant.image.url" :alt="selectedVariant.image.alt" />
           </div>
 
-          <Details :productInfos="productInfos" :selectedVariant="selectedVariant" />
+          <Details
+            @addProductToCart="addToCart"
+            @changeSelectedVariant="changeVariant"
+            :productInfos="productInfos"
+            :selectedVariant="selectedVariant"
+          />
         </div>
       </main>
 
